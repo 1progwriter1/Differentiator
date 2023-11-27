@@ -48,7 +48,7 @@ static int ReadNodeFile(Differentiator *data, TreeNode *node, FileBuffer *buffer
     assert(buffer->buf);
 
     if (IsNewNode(buffer)) {
-        node->left = TreeNodeNew(&data->tree, NULL);
+        node->left = TreeNodeNew(&data->tree, NULL, NULL, NULL);
         if (!node->left)
             return NO_MEMORY;
         if (ReadNodeFile(data, node->left, buffer) != SUCCESS)
@@ -60,7 +60,7 @@ static int ReadNodeFile(Differentiator *data, TreeNode *node, FileBuffer *buffer
         return ERROR;
 
     if (IsNewNode(buffer)) {
-        node->right = TreeNodeNew(&data->tree, NULL);
+        node->right = TreeNodeNew(&data->tree, NULL, NULL, NULL);
         if (!node->right)
             return NO_MEMORY;
         if (ReadNodeFile(data, node->right, buffer) != SUCCESS)
@@ -86,12 +86,13 @@ static NodeValue *GetValue(Differentiator *data, FileBuffer *buffer) {
     double num = 0;
     Variable var = NO_VAR;
     if (sscanf(ptr, "%lf %n", &num, &symbols_read) == 1) {
-        node_ptr = CreateNodeValue(NUMBER, NO_OPERATION, num);
+        node_ptr = CreateNodeValue(NUMBER, NO_OPERATION, num, NO_VAR);
         if (!node_ptr)
             return NULL;
     }
     else if (ReadVariable(buffer, &var) == SUCCESS) {
-        node_ptr = CreateNodeValue(VARIABLE, NO_OPERATION, var);
+        data->var[0] = var;
+        node_ptr = CreateNodeValue(VARIABLE, NO_OPERATION, NO_NUMBER, VAR_X);
         if (!node_ptr)
                 return NULL;
     }
@@ -99,7 +100,7 @@ static NodeValue *GetValue(Differentiator *data, FileBuffer *buffer) {
         Operation operation = GetOperationNumber(buffer);
         if (operation == NO_OPERATION)
             return NULL;
-        node_ptr = CreateNodeValue(OPERATION, operation, NO_NUMBER);
+        node_ptr = CreateNodeValue(OPERATION, operation, NO_NUMBER, NO_VAR);
     }
 
     buffer->index += (size_t) symbols_read;
@@ -114,53 +115,29 @@ static Operation GetOperationNumber(FileBuffer *buffer) {
 
     char *ptr = buffer->buf + buffer->index;
 
+    #define DEF_OP(name, code, sym, ...)                            \
+        if (strncasecmp(ptr + i, sym, sizeof (sym) - 1) == 0) {     \
+            buffer->index += sizeof (#sym) - 1;                     \
+            operation = name;                                       \
+            break;                                                  \
+        }
+
+    Operation  operation = NO_OPERATION;
+
     for (size_t i = 0; ptr[i] != '\0'; i++) {
 
         if (ptr[i] == ' ')
             continue;
 
-        if (ptr[i + 1] == ' ') {
-            buffer->index += i + 1;
-            switch (ptr[i]) {
-                case ('+'): {
-                    return ADD;
-                }
-                case ('-'): {
-                    return SUB;
-                }
-                case ('*'): {
-                    return MUL;
-                }
-                case ('/'): {
-                    return DIV;
-                }
-                default: {
-                    printf(RED "Invalid symbol" END_OF_COLOR "\n");
-                    return NO_OPERATION;
-                }
-            }
-        }
-        else {
-            if (strncasecmp("cos", ptr + i, 3) == 0) {
-                buffer->index += i + 3;
-                return COS;
-            }
-            if (strncasecmp("sin", ptr + i, 3) == 0) {
-                buffer->index += i + 3;
-                return SIN;
-            }
-            if (strncasecmp("sqrt", ptr + i, 4) == 0) {
-                buffer->index += i + 4;
-                return SQRT;
-            }
-            else {
-                printf(RED "Invalid symbols" END_OF_COLOR "\n");
-                return NO_OPERATION;
-            }
-        }
+        #include "operations.h"
+
+        printf(RED "Invalid operation" END_OF_COLOR "\n");
+        break;
     }
 
-    return NO_OPERATION;
+    #undef DEF_OP
+
+    return operation;
 }
 
 static bool IsNewNode(FileBuffer *buffer) {

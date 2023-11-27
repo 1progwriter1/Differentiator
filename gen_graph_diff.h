@@ -3,6 +3,6 @@
 
 #include "bin_tree.h"
 
-int GenGraphDiff(const TreeStruct *tree);
+int GenGraphDiff(const TreeStruct *tree, const char *filename);
 
 #endif

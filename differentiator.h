@@ -2,26 +2,30 @@
 #define DIFFERENTIATOR
 
 #include "bin_tree.h"
-#include "value_buffer.h"
 
 struct Differentiator {
-    ValueBuffer buf;
     TreeStruct tree;
-    double var;
-};
+    double *var;
+    bool is_get;
+}; //???
 
+//variables
+
+// --`. function(variables, tree) --> evaluate
 int DiffCtor(Differentiator *data);
 
 int DiffDtor(Differentiator *data);
 
-Buf_t DiffPushValue(Differentiator *data, Buf_t value);
-
-NodeValue *CreateNodeValue(ValueType type, Operation operation, double num);
+NodeValue *CreateNodeValue(ValueType type, Operation operation, double num, int nvar);
 
 int CalculateTree(Differentiator *data, double *answer);
 
 double GetVarialble();
 
-int FindDerivative(Differentiator *data);
+int TreeCopy(Differentiator *data_src, Differentiator *data_dst);
+
+TreeNode *NodeCopy(Differentiator *data, TreeNode *src);
+
+double CalculateNode(Differentiator *data, TreeNode *node, bool *error);
 
 #endif

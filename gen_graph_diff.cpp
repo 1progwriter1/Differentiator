@@ -6,10 +6,12 @@
 #include <assert.h>
 #include "../MyLibraries/headers/systemdata.h"
 
+const size_t MAX_CMD_LEN = 60;
+
 static int GenDiffNodes(FILE *fn, const TreeNode *node, size_t *index);
 static int PrintNodeTree(FILE *fn, const TreeNode *node, const size_t index);
 
-int GenGraphDiff(const TreeStruct *tree) {
+int GenGraphDiff(const TreeStruct *tree, const char *filename) {
 
     assert(tree);
 
@@ -19,7 +21,7 @@ int GenGraphDiff(const TreeStruct *tree) {
 
     size_t index = 0;
     fprintf(fn, "digraph G {\n\t");
-    fprintf(fn, "%d [shape = \"polygon\", label = \"size: %lu\\naddress: %p\", style = \"filled\", color = \"#FFFF99\"]\n\t-10->0 [weight = 1000, color = \"#FFFFFF\"]\n\t", -10, tree->size, tree->root);
+    fprintf(fn, "%d [shape = \"polygon\", label = \"size: %lu\naddress: %p\", style = \"filled\", color = \"#FFFF99\"]\n\t-10->0 [weight = 1000, color = \"#FFFFFF\"]\n\t", -10, tree->size, tree->root);
 
     if (!tree->root)
         return NULL_POINTER;
@@ -31,7 +33,10 @@ int GenGraphDiff(const TreeStruct *tree) {
 
     fileclose(fn);
 
-    system("dot " GRAPHVIZ_INPUT_FILE " -T png -o " GRAPHVIZ_OUTPUT_FILE);
+    char command[MAX_CMD_LEN] = "";
+
+    snprintf(command, MAX_CMD_LEN ,"dot " GRAPHVIZ_INPUT_FILE " -T png -o %s", filename);
+    system(command);
 
     return SUCCESS;
 }
@@ -70,42 +75,17 @@ static int PrintNodeTree(FILE *fn, const TreeNode *node, const size_t index) {
         fprintf(fn, "#FF0000\", color = \"#331900\", label = \"NULL\"]\n\t");
         return SUCCESS;
     }
+    #define DEF_OP(name, code, sym, ...)    \
+        case (code): {                      \
+            fprintf(fn, sym);               \
+            break;                          \
+        }
 
     switch (node->value->type) {
         case (OPERATION): {
             fprintf(fn, "#00FFFF\", color = \"#331900\", label = \"");
             switch (node->value->value.operation) {
-                case (ADD): {
-                    fprintf(fn, "+");
-                    break;
-                }
-                case (SUB): {
-                    fprintf(fn, "-");
-                    break;
-                }
-                case (DIV): {
-                    fprintf(fn, "/");
-                    break;
-                }
-                case (MUL): {
-                    fprintf(fn, "*");
-                    break;
-                }
-                case (COS): {
-                    fprintf(fn, "cos");
-                    break;
-                }
-                case (SIN): {
-                    fprintf(fn, "sin");
-                    break;
-                }
-                case (SQRT): {
-                    fprintf(fn, "sqrt");
-                    break;
-                }
-                case (LN): {
-                    fprintf(fn, "ln");
-                }
+                #include "operations.h"
                 case (NO_OPERATION): {
                     break;
                 }
@@ -121,16 +101,18 @@ static int PrintNodeTree(FILE *fn, const TreeNode *node, const size_t index) {
             break;
         }
         case (VARIABLE): {
-            fprintf(fn, "#66FF66\", color = \"#331900\", label = \"x");
+            fprintf(fn, "#FFFF66\", color = \"#331900\", label = \"x");
         }
         case (NO_NUMBER): {
             break;
         }
         default: {
-            printf(RED "Incoreect value type" END_OF_COLOR "\n");
+            printf(RED "Incorect value type" END_OF_COLOR "\n");
             return ERROR;
         }
     }
+
+    #undef DEF_OP
 
     fprintf(fn, "\"]\n\t");
 

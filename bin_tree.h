@@ -4,7 +4,7 @@
 #include "diff_values.h"
 #include <stdio.h>
 
-typedef NodeValue* Tree_t;
+typedef NodeValue Tree_t;
 #define tree_output_id "%d"
 
 struct TreeNode {
@@ -20,7 +20,7 @@ struct TreeStruct {
 
 int TreeRootCtor(TreeStruct *tree);
 
-TreeNode *TreeNodeNew(TreeStruct *tree, Tree_t value);
+TreeNode *TreeNodeNew(TreeStruct *tree, NodeValue value, TreeNode *left, TreeNode* rigth);
 
 int TreeInsertNum(TreeStruct *tree, const Tree_t number);
 
