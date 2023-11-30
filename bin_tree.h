@@ -3,6 +3,7 @@
 
 #include "diff_values.h"
 #include <stdio.h>
+#include "my_vector.h"
 
 typedef NodeValue Tree_t;
 #define tree_output_id "%d"
@@ -22,18 +23,14 @@ int TreeRootCtor(TreeStruct *tree);
 
 TreeNode *TreeNodeNew(TreeStruct *tree, NodeValue value, TreeNode *left, TreeNode* rigth);
 
-int TreeInsertNum(TreeStruct *tree, const Tree_t number);
-
 int TreeRootDtor(TreeStruct *tree);
 
 int NodeDtor(TreeStruct *tree, TreeNode *node);
 
-int TreeInsertNum(TreeStruct *tree, const Tree_t number);
-
 int TreeVerify(TreeStruct *tree);
 
-int TreeNodeDtorDiff(TreeStruct *tree, TreeNode *node);
+TreeNode *TreeNodeNewSafe(TreeStruct *tree, NodeValue value, TreeNode *left, TreeNode *right);
 
-int TreeRootDtorDiff(TreeStruct *tree);
+int WriteInFile(TreeStruct *tree, Vector *vars, const char *filename);
 
 #endif

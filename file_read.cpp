@@ -1,38 +1,46 @@
 #include <stdio.h>
 #include "file_read.h"
 #include "../MyLibraries/headers/file_func.h"
-#include "differentiator.h"
+#include "calculate.h"
 #include <assert.h>
 #include "../MyLibraries/headers/systemdata.h"
 #include <string.h>
 #include "gen_graph_diff.h"
 #include <string.h>
+#include "my_vector.h"
+#include "bin_tree.h"
 
-static int ReadNodeFile(Differentiator *data, TreeNode *node, FileBuffer *buffer);
-static NodeValue *GetValue(Differentiator *data, FileBuffer *buffer);
-static Operation GetOperationNumber(FileBuffer *buffer);
+static int ReadNodeFile(TreeStruct *tree, TreeNode *node, Vector *vars, FileBuffer *buffer);
+static int GetValue(TreeNode *node, Vector *vars, FileBuffer *buffer);
+static int GetOperationNumber(TreeNode *node, FileBuffer *buffer);
 static bool IsNewNode(FileBuffer *buffer);
 static int EndNode(FileBuffer *buffer);
-static int ReadVariable(FileBuffer *buffer, Variable *var);
+static int ReadVariable(TreeNode *node, FileBuffer *buffer, Vector *vars);
+static int GetIndexIfExist(Vector *vars, const char *variable);
 
-int ReadFileDiff(Differentiator *data, const char *filename) {
+int ReadFileDiff(TreeStruct *tree, Vector *vars, const char *filename) {
 
-    assert(data);
+    assert(tree);
+    assert(vars);
     assert(filename);
 
     FileBuffer buffer = {};
 
     buffer.buf = readbuf(filename);
-    if (!buffer.buf)
+    if (!buffer.buf) {
+        printf(RED "Buffer creation error" END_OF_COLOR "\n");
         return ERROR;
+    }
 
     buffer.index = 0;
 
     if (IsNewNode(&buffer)) {
-        if (!data->tree.root)
+        if (!tree->root)
             return NO_MEMORY;
-        if (ReadNodeFile(data, data->tree.root, &buffer) != SUCCESS)
+        if (ReadNodeFile(tree, tree->root, vars, &buffer) != SUCCESS) {
+            printf(RED "Error when reading the tree" END_OF_COLOR "\n");
             return ERROR;
+        }
     }
 
     free(buffer.buf);
@@ -40,30 +48,30 @@ int ReadFileDiff(Differentiator *data, const char *filename) {
     return SUCCESS;
 }
 
-static int ReadNodeFile(Differentiator *data, TreeNode *node, FileBuffer *buffer) {
+static int ReadNodeFile(TreeStruct *tree, TreeNode *node, Vector *vars, FileBuffer *buffer) {
 
     assert(node);
-    assert(data);
+    assert(tree);
+    assert(vars);
     assert(buffer);
     assert(buffer->buf);
 
     if (IsNewNode(buffer)) {
-        node->left = TreeNodeNew(&data->tree, NULL, NULL, NULL);
+        node->left = TreeNodeNew(tree, {}, NULL, NULL);
         if (!node->left)
             return NO_MEMORY;
-        if (ReadNodeFile(data, node->left, buffer) != SUCCESS)
+        if (ReadNodeFile(tree, node->left, vars, buffer) != SUCCESS)
             return ERROR;
     }
 
-    node->value = GetValue(data, buffer);
-    if (!node->value)
+    if (GetValue(node, vars, buffer) != SUCCESS)
         return ERROR;
 
     if (IsNewNode(buffer)) {
-        node->right = TreeNodeNew(&data->tree, NULL, NULL, NULL);
+        node->right = TreeNodeNew(tree, {}, NULL, NULL);
         if (!node->right)
             return NO_MEMORY;
-        if (ReadNodeFile(data, node->right, buffer) != SUCCESS)
+        if (ReadNodeFile(tree, node->right, vars, buffer) != SUCCESS)
             return ERROR;
     }
 
@@ -73,42 +81,33 @@ static int ReadNodeFile(Differentiator *data, TreeNode *node, FileBuffer *buffer
     return SUCCESS;
 }
 
-static NodeValue *GetValue(Differentiator *data, FileBuffer *buffer) {
+static int GetValue(TreeNode *node, Vector *vars, FileBuffer *buffer) {
 
-    assert(data);
+    assert(node);
     assert(buffer);
     assert(buffer->buf);
 
     char *ptr = buffer->buf + buffer->index;
 
-    NodeValue *node_ptr = NULL;
     int symbols_read = 0;
     double num = 0;
-    Variable var = NO_VAR;
     if (sscanf(ptr, "%lf %n", &num, &symbols_read) == 1) {
-        node_ptr = CreateNodeValue(NUMBER, NO_OPERATION, num, NO_VAR);
-        if (!node_ptr)
-            return NULL;
+        node->value = {NUMBER, {.number = num}};
     }
-    else if (ReadVariable(buffer, &var) == SUCCESS) {
-        data->var[0] = var;
-        node_ptr = CreateNodeValue(VARIABLE, NO_OPERATION, NO_NUMBER, VAR_X);
-        if (!node_ptr)
-                return NULL;
+    else if (GetOperationNumber(node, buffer) == SUCCESS) {
+        return SUCCESS;
     }
     else {
-        Operation operation = GetOperationNumber(buffer);
-        if (operation == NO_OPERATION)
-            return NULL;
-        node_ptr = CreateNodeValue(OPERATION, operation, NO_NUMBER, NO_VAR);
+        if (ReadVariable(node, buffer, vars) != SUCCESS)
+            return ERROR;
     }
 
     buffer->index += (size_t) symbols_read;
 
-    return node_ptr;
+    return SUCCESS;
 }
 
-static Operation GetOperationNumber(FileBuffer *buffer) {
+static int GetOperationNumber(TreeNode *node, FileBuffer *buffer) {
 
     assert(buffer);
     assert(buffer->buf);
@@ -117,12 +116,10 @@ static Operation GetOperationNumber(FileBuffer *buffer) {
 
     #define DEF_OP(name, code, sym, ...)                            \
         if (strncasecmp(ptr + i, sym, sizeof (sym) - 1) == 0) {     \
-            buffer->index += sizeof (#sym) - 1;                     \
-            operation = name;                                       \
+            buffer->index += i + sizeof (sym) - 1;                  \
+            node->value = {OPERATION, {.operation = name}};         \
             break;                                                  \
         }
-
-    Operation  operation = NO_OPERATION;
 
     for (size_t i = 0; ptr[i] != '\0'; i++) {
 
@@ -131,13 +128,12 @@ static Operation GetOperationNumber(FileBuffer *buffer) {
 
         #include "operations.h"
 
-        printf(RED "Invalid operation" END_OF_COLOR "\n");
-        break;
+        return ERROR;
     }
 
     #undef DEF_OP
 
-    return operation;
+    return SUCCESS;
 }
 
 static bool IsNewNode(FileBuffer *buffer) {
@@ -191,26 +187,83 @@ static int EndNode(FileBuffer *buffer) {
     return ERROR;
 }
 
-static int ReadVariable(FileBuffer *buffer, Variable *var) {
+static int ReadVariable(TreeNode *node, FileBuffer *buffer, Vector *vars) {
 
-    assert(var);
+    assert(vars);
+    assert(node);
     assert(buffer);
     assert(buffer->buf);
+
+    int symbols_read = 0;
+    char *str = (char *) calloc (MAX_VAR_NAME_LEN, sizeof (char));
+    if (!str)
+        return ERROR;
 
     char *ptr = buffer->buf + buffer->index;
     for (size_t i = 0; ptr[i] != '\0'; i++) {
         if (ptr[i] == ' ')
             continue;
-        if (ptr[i] != 'x') {
+
+        if (sscanf(ptr + i, "%" COL_SYM "[^ _] %n", str, &symbols_read) != 1)
+            return ERROR;
+
+        if (ptr[i + (size_t) symbols_read] != ' ' && ptr[i + (size_t) symbols_read] != '_') {
+            printf(RED "Name of variable is too long" END_OF_COLOR "\n");
             return ERROR;
         }
-        else {
-            buffer->index += i + 1;
-            *var = VAR_X;
-            return SUCCESS;
-        }
+
+        buffer->index += i + (size_t) symbols_read;
+        break;
+    }
+    int var_index = GetIndexIfExist(vars, str);
+
+    if (var_index == -1) {
+        if (PushBack(vars, {str, 0}) != SUCCESS)
+            return ERROR;
+        node->value = {VARIABLE, {.nvar = vars->size - 1}};
+    }
+    else {
+        node->value = {VARIABLE, {.nvar = (size_t) var_index}};
     }
 
-    return ERROR;
+    return SUCCESS;
 
+}
+
+static int GetIndexIfExist(Vector *vars, const char *variable) {
+
+    assert(vars);
+    assert(variable);
+
+    for (size_t i = 0; i < vars->size; i++) {
+        if (strcmp(vars->data[i].name, variable) == 0)
+            return (int) i;
+    }
+
+    return -1;
+}
+
+int GetMainArgs(const int argc, const char *argv[], MainArgs *maindata) {
+
+    assert(argv);
+    assert(maindata);
+
+    for (size_t i = 1; i < (size_t) argc; i++) {
+        if (strcmp("--graph", argv[i]) == 0) {
+            maindata->graph = true;
+            continue;
+        }
+        if (strcmp("--calc", argv[i]) == 0) {
+            maindata->calculate = true;
+            continue;
+        }
+        if (strcmp("--latex", argv[i]) == 0) {
+            maindata->latex = true;
+            continue;
+        }
+        printf(RED "Incorrect args for main()" END_OF_COLOR "\n");
+        return ERROR;
+    }
+
+    return SUCCESS;
 }

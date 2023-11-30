@@ -5,30 +5,36 @@
 #define GRAPH_FILE "Graphviz/diff_cpy.png"
 #define GRAPHVIZ_INPUT_FILE "Graphviz/diff.dot"
 #define DATA_DIFF "diff_data.txt"
+#define PLOT_FILE "plot_file.txt"
+#define LATEX_FILE "latex/latex.txt"
 
-const size_t NUM_OF_VARIABLES = 1; //??
-const char variables[NUM_OF_VARIABLES][2] = {"x"}; //?
+#define COL_SYM "5"
+
+const size_t NUM_OF_VARS = 1;
+const size_t MAX_VAR_NAME_LEN = 6;
+
+struct MainArgs {
+    bool graph;
+    bool calculate;
+    bool latex;
+};
+
+enum PoisonValue {
+    NO_OPERATION,
+    NO_NUMBER,
+    NO_VAR,
+};
 
 enum ValueType {
-    NO_TYPE   = -2,
-    NO_NUMBER = -1,
     NUMBER    =  0,
     OPERATION =  1,
     VARIABLE  =  2,
 };
 
-enum Variable {
-    NO_VAR = -1,
-    VAR_X  =  0,
-};
-
 #define DEF_OP(name, code, ...) name = code,
 
 enum Operation {
-    NO_OPERATION = -1,
-
     #include "operations.h"
-
 };
 
 #undef DEF_OP
@@ -38,12 +44,8 @@ struct NodeValue {
     union {
         enum Operation operation;
         double number;
-        double *vars;
+        size_t nvar;
     };
 };
-// internal linkage
-//const char array[][];
-//
-//const char* array[];
 
 #endif

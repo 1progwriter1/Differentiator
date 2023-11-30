@@ -2,18 +2,21 @@
 #include "../MyLibraries/headers/file_func.h"
 #include "../MyLibraries/headers/systemdata.h"
 #include "gen_graph_diff.h"
-#include "differentiator.h"
+#include "calculate.h"
 #include <assert.h>
 #include "../MyLibraries/headers/systemdata.h"
+#include "my_vector.h"
 
 const size_t MAX_CMD_LEN = 60;
 
-static int GenDiffNodes(FILE *fn, const TreeNode *node, size_t *index);
-static int PrintNodeTree(FILE *fn, const TreeNode *node, const size_t index);
+static int GenDiffNodes(FILE *fn, const TreeNode *node, Vector *vars, size_t *index);
+static int PrintNodeTree(FILE *fn, const TreeNode *node, Vector *vars, const size_t index);
 
-int GenGraphDiff(const TreeStruct *tree, const char *filename) {
+int GenGraphDiff(const TreeStruct *tree, Vector *vars, const char *filename) {
 
     assert(tree);
+    assert(vars);
+    assert(filename);
 
     FILE *fn = fileopen(GRAPHVIZ_INPUT_FILE, WRITE);
     if (!fn)
@@ -21,12 +24,12 @@ int GenGraphDiff(const TreeStruct *tree, const char *filename) {
 
     size_t index = 0;
     fprintf(fn, "digraph G {\n\t");
-    fprintf(fn, "%d [shape = \"polygon\", label = \"size: %lu\naddress: %p\", style = \"filled\", color = \"#FFFF99\"]\n\t-10->0 [weight = 1000, color = \"#FFFFFF\"]\n\t", -10, tree->size, tree->root);
+    fprintf(fn, "%d [shape = \"polygon\", label = \"size: %lu\\naddress: %p\", style = \"filled\", color = \"#FFFF99\"]\n\t-10->0 [weight = 1000, color = \"#FFFFFF\"]\n\t", -10, tree->size, tree->root);
 
     if (!tree->root)
         return NULL_POINTER;
 
-    GenDiffNodes(fn, tree->root, &index);
+    GenDiffNodes(fn, tree->root, vars, &index);
 
     fprintf(fn, "\n");
     fprintf(fn, "}");
@@ -41,54 +44,49 @@ int GenGraphDiff(const TreeStruct *tree, const char *filename) {
     return SUCCESS;
 }
 
-static int GenDiffNodes(FILE *fn, const TreeNode *node, size_t *index) {
+static int GenDiffNodes(FILE *fn, const TreeNode *node, Vector *vars, size_t *index) {
 
     assert(fn);
     assert(node);
     assert(index);
+    assert(vars);
 
-    PrintNodeTree(fn, node, *index);
+    PrintNodeTree(fn, node, vars, *index);
     size_t main_index = *index;
 
     if (node->left) {
         *index += 1;
         fprintf(fn, "%lu->%lu\n\t", main_index, *index);
-        GenDiffNodes(fn, node->left, index);
+        GenDiffNodes(fn, node->left, vars, index);
     }
     if (node->right) {
         *index += 1;
         fprintf(fn, "%lu->%lu\n\t", main_index, *index);
-        GenDiffNodes(fn, node->right, index);
+        GenDiffNodes(fn, node->right, vars, index);
     }
 
     return SUCCESS;
 }
 
-static int PrintNodeTree(FILE *fn, const TreeNode *node, const size_t index) {
+static int PrintNodeTree(FILE *fn, const TreeNode *node, Vector *vars, const size_t index) {
 
     assert(fn);
     assert(node);
+    assert(vars);
 
     fprintf(fn, "%lu [shape = Mrecord, style = filled, fillcolor = \"", index);
 
-    if (!node->value) {
-        fprintf(fn, "#FF0000\", color = \"#331900\", label = \"NULL\"]\n\t");
-        return SUCCESS;
-    }
     #define DEF_OP(name, code, sym, ...)    \
         case (code): {                      \
             fprintf(fn, sym);               \
             break;                          \
         }
 
-    switch (node->value->type) {
+    switch (node->value.type) {
         case (OPERATION): {
             fprintf(fn, "#00FFFF\", color = \"#331900\", label = \"");
-            switch (node->value->value.operation) {
+            switch (node->value.operation) {
                 #include "operations.h"
-                case (NO_OPERATION): {
-                    break;
-                }
                 default: {
                     printf(RED "Incorrect operation number" END_OF_COLOR "\n");
                     return ERROR;
@@ -97,13 +95,15 @@ static int PrintNodeTree(FILE *fn, const TreeNode *node, const size_t index) {
             break;
         }
         case (NUMBER): {
-            fprintf(fn, "#66FF66\", color = \"#331900\", label = \"%lg", node->value->value.number);
+            fprintf(fn, "#66FF66\", color = \"#331900\", label = \"%lg", node->value.number);
             break;
         }
         case (VARIABLE): {
-            fprintf(fn, "#FFFF66\", color = \"#331900\", label = \"x");
-        }
-        case (NO_NUMBER): {
+            if (!vars->data[node->value.nvar].name) {
+                printf(RED "Missing variable to print" END_OF_COLOR "\n");
+                return ERROR;
+            }
+            fprintf(fn, "#FFFF66\", color = \"#331900\", label = \"%s", vars->data[node->value.nvar].name);
             break;
         }
         default: {

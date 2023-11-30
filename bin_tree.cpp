@@ -4,8 +4,12 @@
 #include "../MyLibraries/headers/systemdata.h"
 #include "../MyLibraries/headers/func.h"
 #include <string.h>
+#include "calculate.h"
+#include "my_vector.h"
+#include  "../MyLibraries/headers/file_func.h"
 
 static int WalkTree(TreeNode *node, size_t *col_nodes);
+static int WriteNodeInFile(TreeNode *node, FILE *file, Vector *vars);
 
 int TreeRootCtor(TreeStruct *tree) {
 
@@ -33,15 +37,39 @@ TreeNode *TreeNodeNew(TreeStruct *tree, NodeValue value, TreeNode *left, TreeNod
     return node;
 }
 
+TreeNode *TreeNodeNewSafe(TreeStruct *tree, NodeValue value, TreeNode *left, TreeNode *right) {
+
+    if (!right)
+        return NULL;
+
+    if (value.type == OPERATION && GetNumOfArgs(value.operation) == 2)
+        if (!left)
+            return NULL;
+
+    TreeNode *node = (TreeNode *) calloc (1, sizeof (TreeNode));
+    if (!node)
+        return NULL;
+
+    node->value = value;
+    node->left = left;
+    node->right = right;
+
+    tree->size++;
+
+    return node;
+}
+
 int TreeRootDtor(TreeStruct *tree) {
 
     assert(tree);
-    assert(tree->root);
+
+    if (!tree->root)
+        return SUCCESS;
 
     if (tree->root->left || tree->root->right) {
         NodeDtor(tree, tree->root);
     }
-    free(tree->root);
+
     tree->root = NULL;
     tree->size = 0;
 
@@ -65,45 +93,6 @@ int NodeDtor(TreeStruct *tree, TreeNode *node) {
     free(node);
 
     tree->size--;
-
-    return SUCCESS;
-}
-
-int TreeInsertNum(TreeStruct *tree, const Tree_t number) {
-
-    assert(tree);
-
-    if (TreeVerify(tree) != SUCCESS)
-        return ERROR;
-
-    if (!tree->root) {
-        tree->root->value = number;
-        return SUCCESS;
-    }
-
-    TreeNode *ptr = tree->root;
-    while (1) {
-        if (number < ptr->value)
-            if (!ptr->left) {
-                ptr->left = TreeNodeNew(tree, number, NULL, NULL);
-                if (!ptr->left)
-                    return NO_MEMORY;
-                break;
-            }
-            else {
-                ptr = ptr->left;
-            }
-        else
-            if (!ptr->right) {
-                ptr->right = TreeNodeNew(tree, number, NULL, NULL);
-                if (!ptr->right)
-                    return NO_MEMORY;
-                break;
-            }
-            else {
-                ptr = ptr->right;
-            }
-    }
 
     return SUCCESS;
 }
@@ -147,40 +136,80 @@ static int WalkTree(TreeNode *node, size_t *col_nodes) {
     return SUCCESS;
 }
 
-/* int TreeRootDtorDiff(TreeStruct *tree) {
+int WriteInFile(TreeStruct *tree, Vector *vars, const char *filename) {
 
     assert(tree);
-    assert(tree->root);
+    assert(vars);
+    assert(filename);
 
-    if (tree->root->left || tree->root->right) {
-        TreeNodeDtorDiff(tree, tree->root);
+    if (VarsVerify(vars) != SUCCESS)
+        return ERROR;
+
+    FILE *fn = fileopen(filename, WRITE);
+    if (!fn)
+        return FILE_OPEN_ERROR;
+
+    if (WriteNodeInFile(tree->root, fn, vars) != SUCCESS) {
+        printf(RED "Error while printing tree" END_OF_COLOR "\n");
+        return ERROR;
     }
-
-    tree->root = NULL;
-    tree->size = 0;
 
     return SUCCESS;
 }
 
-int TreeNodeDtorDiff(TreeStruct *tree, TreeNode *node) {
+static int WriteNodeInFile(TreeNode *node, FILE *file, Vector *vars) {
 
-    assert(tree);
-    assert(node);
+    assert(file);
+    assert(vars);
 
-
-    if (node->left) {
-        TreeNodeDtorDiff(tree, node->left);
-        node->left = NULL;
+    if (!node) {
+        fprintf(file, "_");
+        return SUCCESS;
     }
-    if (node->right) {
-        TreeNodeDtorDiff(tree, node->right);
-        node->right = NULL;
-    }
-    free(node->value);
-    node->value = NULL;
-    free(node);
 
-    tree->size--;
+    fprintf(file, "(");
+
+    if (WriteNodeInFile(node->left, file, vars) != SUCCESS)
+        return ERROR;
+
+    #define DEF_OP(name, code, sym, ...)\
+        case (code): {                  \
+            fprintf(file, sym);         \
+            break;                      \
+        }
+
+    switch (node->value.type) {
+        case (NUMBER): {
+            fprintf(file, "%lg", node->value.number);
+            break;
+        }
+        case (OPERATION): {
+            switch (node->value.operation) {
+                #include "operations.h"
+                default: {
+                    printf(RED "Incorrect operation (printing tree)" END_OF_COLOR "\n");
+                    return ERROR;
+                }
+            }
+            break;
+        }
+        case (VARIABLE): {
+            fprintf(file, "%s", vars->data[node->value.nvar].name);
+            break;
+        }
+        default: {
+            printf(RED "Incorrect value type (printing tree)" END_OF_COLOR "\n");
+            return ERROR;
+        }
+    }
+
+    #undef DEF_OP
+
+    if (WriteNodeInFile(node->right, file, vars) != SUCCESS)
+        return ERROR;
+
+    fprintf(file, ")");
 
     return SUCCESS;
-} */
+
+}

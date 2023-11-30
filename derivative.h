@@ -1,10 +1,10 @@
 #ifndef DERIVATIVE_DIFF
 #define DERIVATIVE_DIFF
 
-#include "differentiator.h"
+#include "bin_tree.h"
 
-int FindDerivative(Differentiator *data, Differentiator *data_cpy);
+int TakeTreeDerivative(TreeStruct *tree, TreeStruct *diff_tree, const size_t var_index);
 
-int Simplify(Differentiator *data);
+int SimplifyTree(TreeStruct *tree);
 
 #endif
