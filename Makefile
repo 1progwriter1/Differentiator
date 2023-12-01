@@ -3,12 +3,17 @@ CFLAGS=-fsanitize=address,alignment -D _DEBUG -ggdb3 -std=c++17 -O0 -Wall -Wextr
 COMP=g++
 
 OBJ_DIR=object_files
+LIB_DIR=libs_objects
 SOURCES=$(wildcard *.cpp)
 OBJECTS=$(patsubst %.cpp, %.o, $(SOURCES))
-OBJ_MOVED=$(wildcard object_files/*.o)
+OBJ_MOVED=$(wildcard $(OBJ_DIR)/*.o)
+LIB_OBJ=$(wildcard $(LIB_DIR)/*.o)
 
 
 all: $(SOURCES)
-	g++ $(CFLAGS) -c $(SOURCES)
-	mv $(OBJECTS) object_files/
-	g++ $(CFLAGS) $(OBJ_MOVED)
+	$(COMP) $(CFLAGS) -c $(SOURCES)
+	mv $(OBJECTS) $(OBJ_DIR)/
+	$(COMP) $(CFLAGS) $(OBJ_MOVED) $(LIB_OBJ)
+
+clean:
+	rm -f $(OBJ_MOVED)

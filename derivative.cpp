@@ -33,12 +33,7 @@ int TakeTreeDerivative(TreeStruct *tree, TreeStruct *diff_tree, const size_t var
         return NULL_POINTER;
     }
 
-    if (SimplifyTree(diff_tree) != SUCCESS)
-        return ERROR;
-
-    if (TreeVerify(diff_tree) != SUCCESS) {
-        return ERROR;
-    }
+    CountSubTreeSize(diff_tree->root);
 
     return SUCCESS;
 }
@@ -184,17 +179,17 @@ static TreeNode* AddSimplify(TreeStruct *tree, TreeNode *node) {
     assert(tree);
     assert(node);
 
-    if (IsNum(node->left) && IsZero(node->left)) {
+    if (IsZero(node->left)) {
         TreeNode *ptr = NodeCopy(tree, node->right);
-        if (!ptr)
-            return NULL;
+        if (!ptr)  return NULL;
+
         NodeDtor(tree, node);
         return ptr;
     }
-    if (IsNum(node->right) && IsZero(node->right)) {
+    if (IsZero(node->left)) {
         TreeNode *ptr = NodeCopy(tree, node->left);
-        if (!ptr)
-            return NULL;
+        if (!ptr)  return NULL;
+
         NodeDtor(tree, node);
         return ptr;
     }
@@ -208,9 +203,10 @@ static TreeNode* SubSimplify(TreeStruct *tree, TreeNode *node) {
     assert(node);
 
     if (IsNum(node->right) && IsZero(node->right)) {
+
         TreeNode *ptr = NodeCopy(tree, node->left);
-        if (!ptr)
-            return NULL;
+        if (!ptr)  return NULL;
+
         NodeDtor(tree, node);
         return ptr;
     }
@@ -223,24 +219,30 @@ static TreeNode* MulSimplify(TreeStruct *tree, TreeNode *node) {
     assert(tree);
     assert(node);
 
-    if ((IsNum(node->left) && IsZero(node->left)) || (IsNum(node->right) && IsZero(node->right))) {
+    if (IsZero(node->left) || IsZero(node->right)) {
+
         NodeDtor(tree, node);
+
         TreeNode *ptr = NEW(NUM(0), NULL, NULL);
-        if (!ptr)
-            return NULL;
+        if (!ptr) return NULL;
+
         return ptr;
     }
-    if (IsNum(node->left) && IsOne(node->left)) {
+
+    if (IsOne(node->left)) {
+
         TreeNode *ptr = NodeCopy(tree, node->right);
-        if (!ptr)
-            return NULL;
+        if (!ptr) return NULL;
+
         NodeDtor(tree, node);
         return ptr;
     }
-    if (IsNum(node->right) && IsOne(node->right)) {
+
+    if (IsOne(node->right)) {
+
         TreeNode *ptr = NodeCopy(tree, node->left);
-        if (!ptr)
-            return NULL;
+        if (!ptr) return NULL;
+
         NodeDtor(tree, node);
         return ptr;
     }
@@ -253,17 +255,19 @@ static TreeNode* DivSimplify(TreeStruct *tree, TreeNode *node) {
     assert(tree);
     assert(node);
 
-    if (IsNum(node->left) && IsZero(node->left)) {
+    if (IsZero(node->left)) {
+
         NodeDtor(tree, node);
         TreeNode *ptr = NEW(NUM(0), NULL, NULL);
-        if (!ptr)
-            return NULL;
+        if (!ptr)  return NULL;
+
         return ptr;
     }
-    if (IsNum(node->right) && IsOne(node->right)) {
+    if (IsOne(node->right)) {
+
         TreeNode *ptr = NodeCopy(tree, node->left);
-        if (!ptr)
-            return NULL;
+        if (!ptr)  return NULL;
+
         NodeDtor(tree, node);
         return ptr;
     }
@@ -276,30 +280,52 @@ static TreeNode* PowSimplify(TreeStruct *tree, TreeNode *node) {
     assert(tree);
     assert(node);
 
-    if (IsNum(node->left) && (IsZero(node->left) || IsOne(node->right))) {
+    if (IsZero(node->left) || IsOne(node->right)) {
+
         TreeNode *ptr = NEW(NUM(node->left->value.number), NULL, NULL);
         NodeDtor(tree, node);
-        if (!ptr)
-            return NULL;
+        if (!ptr) return NULL;
+
         return ptr;
     }
-    if (IsNum(node->right)) {
-        if (IsZero(node->right)) {
-            NodeDtor(tree, node);
-            TreeNode *ptr = NEW(NUM(1), NULL, NULL);
-            if (!ptr)
-                return NULL;
-            return ptr;
-        }
-        if (IsOne(node->right)) {
-            TreeNode *ptr = NodeCopy(tree, node->left);
-            if (!ptr)
-                return NULL;
-            NodeDtor(tree, node);
-            return ptr;
-        }
+    if (IsZero(node->right)) {
+
+        NodeDtor(tree, node);
+        TreeNode *ptr = NEW(NUM(1), NULL, NULL);
+        if (!ptr) return NULL;
+
+        return ptr;
+    }
+    if (IsOne(node->right)) {
+
+        TreeNode *ptr = NodeCopy(tree, node->left);
+        if (!ptr)  return NULL;
+        NodeDtor(tree, node);
+        return ptr;
     }
 
-
     return node;
+}
+
+int CountSubTreeSize(TreeNode *node) {
+
+    assert(node);
+
+    node->value.subtree_size = 1;
+
+    if (node->value.nick != 0) {
+        node->value.subtree_size = 1;
+        return SUCCESS;
+    }
+
+    if (node->left) {
+        CountSubTreeSize(node->left);
+        node->value.subtree_size += node->left->value.subtree_size;
+    }
+    if (node->right) {
+        CountSubTreeSize(node->right);
+        node->value.subtree_size += node->right->value.subtree_size;
+    }
+
+    return SUCCESS;
 }

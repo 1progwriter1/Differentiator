@@ -1,8 +1,8 @@
 #ifndef FILE_READ_DIFF
 #define FILE_READ_DIFF
 
-#include "bin_tree.h"
 #include "my_vector.h"
+#include "bin_tree.h"
 
 struct FileBuffer {
     char *buf;

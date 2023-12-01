@@ -7,4 +7,6 @@ int TakeTreeDerivative(TreeStruct *tree, TreeStruct *diff_tree, const size_t var
 
 int SimplifyTree(TreeStruct *tree);
 
+int CountSubTreeSize(TreeNode *node);
+
 #endif

@@ -9,6 +9,7 @@
 #include <string.h>
 #include "my_vector.h"
 #include "bin_tree.h"
+#include "derivative.h"
 
 static int ReadNodeFile(TreeStruct *tree, TreeNode *node, Vector *vars, FileBuffer *buffer);
 static int GetValue(TreeNode *node, Vector *vars, FileBuffer *buffer);
@@ -45,6 +46,8 @@ int ReadFileDiff(TreeStruct *tree, Vector *vars, const char *filename) {
 
     free(buffer.buf);
 
+    CountSubTreeSize(tree->root);
+
     return SUCCESS;
 }
 
@@ -58,8 +61,7 @@ static int ReadNodeFile(TreeStruct *tree, TreeNode *node, Vector *vars, FileBuff
 
     if (IsNewNode(buffer)) {
         node->left = TreeNodeNew(tree, {}, NULL, NULL);
-        if (!node->left)
-            return NO_MEMORY;
+        if (!node->left) return NO_MEMORY;
         if (ReadNodeFile(tree, node->left, vars, buffer) != SUCCESS)
             return ERROR;
     }
@@ -69,8 +71,7 @@ static int ReadNodeFile(TreeStruct *tree, TreeNode *node, Vector *vars, FileBuff
 
     if (IsNewNode(buffer)) {
         node->right = TreeNodeNew(tree, {}, NULL, NULL);
-        if (!node->right)
-            return NO_MEMORY;
+        if (!node->right) return NO_MEMORY;
         if (ReadNodeFile(tree, node->right, vars, buffer) != SUCCESS)
             return ERROR;
     }
@@ -114,11 +115,11 @@ static int GetOperationNumber(TreeNode *node, FileBuffer *buffer) {
 
     char *ptr = buffer->buf + buffer->index;
 
-    #define DEF_OP(name, code, sym, ...)                            \
-        if (strncasecmp(ptr + i, sym, sizeof (sym) - 1) == 0) {     \
-            buffer->index += i + sizeof (sym) - 1;                  \
-            node->value = {OPERATION, {.operation = name}};         \
-            break;                                                  \
+    #define DEF_OP(name, code, sym, ...)                                                \
+        if (strncasecmp(ptr + i, sym, sizeof (sym) - 1) == 0) {                         \
+            buffer->index += i + sizeof (sym) - 1;                                      \
+            node->value = {OPERATION, {.operation = name}};                             \
+            break;                                                                      \
         }
 
     for (size_t i = 0; ptr[i] != '\0'; i++) {

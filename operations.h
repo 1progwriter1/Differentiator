@@ -66,18 +66,19 @@ DEF_OP (LN, 6, "ln", 1,
         log(CALC(R)), "\\ln")
 
 DEF_OP (POW, 7, "^", 2,
-        NEW_S(OP(MUL),
-            C(node),
-            NEW_S(OP(ADD),
-                NEW_S(OP(MUL),
-                    D(R),
-                    NEW_S(OP(LN), NULL,
-                        C(L))),
-                NEW_S(OP(MUL),
-                    C(R),
-                    NEW_S(OP(DIV),
-                        D(L),
-                        C(L))))),
+        IsNum(R) ? NEW_S(OP(MUL), NEW_S(OP(MUL), C(R), NEW_S(OP(POW), C(L), NEW_S(OP(SUB), C(R), NEW(NUM(1), NULL, NULL)))), D(L)) :
+            NEW_S(OP(MUL),
+                C(node),
+                NEW_S(OP(ADD),
+                    NEW_S(OP(MUL),
+                        D(R),
+                        NEW_S(OP(LN), NULL,
+                            C(L))),
+                    NEW_S(OP(MUL),
+                        C(R),
+                        NEW_S(OP(DIV),
+                            D(L),
+                            C(L))))),
 
         pow(CALC(L), CALC(R)), "^")
 

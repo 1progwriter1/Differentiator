@@ -114,7 +114,7 @@ static int PrintNodeTree(FILE *fn, const TreeNode *node, Vector *vars, const siz
 
     #undef DEF_OP
 
-    fprintf(fn, "\"]\n\t");
+    fprintf(fn, "\\nsubtree_size: %lu\\nchar: %d\"]\n\t", node->value.subtree_size, node->value.nick);
 
     return SUCCESS;
 }

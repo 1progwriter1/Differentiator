@@ -11,17 +11,18 @@
 #include "../MyLibraries/headers/func.h"
 #include "derivative.h"
 #include "gen_graph_diff.h"
-#include <ctype.h>
+#include <time.h>
 
 const size_t NUM_OF_PHRASES = 11;
-const size_t DEPTH = 3;
+const size_t DEPTH = 7;
+const size_t MAX_SUB_TREE_SIZE = 85;
 
 const char *PHRASES[NUM_OF_PHRASES] = {
     "Несложно заметить, что следующая производная выглядит так:\n",
     "Ежу понятно, что при дальнейшем дифференцирвоании мы получим:\n",
     "Легко заметить, что далее мы получим:\n",
     "Мне уже надоело, но давайте ещё немного посчитаем:\n",
-    "Следующие преобразования легко произветси в уме:\n",
+    "Следующие преобразования легко произвести в уме:\n",
     "Легко заметить, что ,продолжая вычисления, получим:\n",
     "Абсолютно очевидно, как найти следующую производную:\n",
     "Ещё разок продифференцируем:\n",
@@ -32,6 +33,8 @@ const char *PHRASES[NUM_OF_PHRASES] = {
 
 static int PrintNodeLatex(TreeNode *node, Vector *vars, FILE *fn);
 static size_t GetVarIndex(Vector *vars);
+static int MakeSubstitutions(TreeStruct *tree, TreeNode *node, char *current_nick);
+static int PrepareToPrint(TreeStruct *tree, Vector *vars, size_t *var_index, const char *filename);
 
 int PrintDifferentiation(TreeStruct *tree, Vector *vars, const char *filename) {
 
@@ -39,18 +42,9 @@ int PrintDifferentiation(TreeStruct *tree, Vector *vars, const char *filename) {
     assert(vars);
     assert(filename);
 
-    if (TreeVerify(tree) != SUCCESS)
-        return ERROR;
-
-    if (VarsVerify(vars) != SUCCESS)
-        return ERROR;
-
     size_t var_index = 0;
-    if (vars->size > 1) {
-        var_index = GetVarIndex(vars);
-    }
-
-    cleanfile(filename);
+    if (PrepareToPrint(tree, vars, &var_index, filename) != SUCCESS)
+        return ERROR;
 
     FILE *fn = fileopen(filename, APPEND);
     if (!fn)
@@ -58,15 +52,21 @@ int PrintDifferentiation(TreeStruct *tree, Vector *vars, const char *filename) {
 
     fprintf(fn, "Давайте начнем:\n");
 
+    char current_nick = 'A';
+
     if (GenLatex(tree, vars, fn) != SUCCESS)
         return ERROR;
 
+    srand((unsigned int) time(NULL));
 
     TreeStruct diff_tree = {};
     for (size_t i = 0; i < DEPTH; i++) {
-        fprintf(fn, "%s\n", PHRASES[randnum(0, NUM_OF_PHRASES - 1)]);
+        fprintf(fn, "%s", PHRASES[randnum(0, NUM_OF_PHRASES - 1)]);
 
         if (TakeTreeDerivative(tree, &diff_tree, var_index) != SUCCESS)
+            return ERROR;
+
+        if (MakeSubstitutions(&diff_tree, diff_tree.root, &current_nick) != SUCCESS)
             return ERROR;
 
         if (GenLatex(&diff_tree, vars, fn) != SUCCESS)
@@ -117,6 +117,11 @@ static int PrintNodeLatex(TreeNode *node, Vector *vars, FILE *fn) {
         return SUCCESS;
     }
 
+    if (node->value.nick != 0) {
+        fprintf(fn, "%c", node->value.nick);
+        return SUCCESS;
+    }
+
     switch (node->value.type) {
         case (NUMBER): {
             Print(L);
@@ -147,9 +152,23 @@ static int PrintNodeLatex(TreeNode *node, Vector *vars, FILE *fn) {
                     break;
                 }
                 case (MUL): {
-                    Print(L);
-                    fprintf(fn, "*");
-                    Print(R);
+                    if (IsOp(L) && (L->value.operation == ADD || L->value.operation == SUB)) {
+                        fprintf(fn, "(");
+                        Print(L);
+                        fprintf(fn, ")");
+                    }
+                    else {
+                        Print(L);
+                    }
+                    fprintf(fn, "\\cdot");
+                    if (IsOp(R) && (R->value.operation == ADD || R->value.operation == SUB)) {
+                        fprintf(fn, "(");
+                        Print(R);
+                        fprintf(fn, ")");
+                    }
+                    else {
+                        Print(R);
+                    }
                     break;
                 }
                 case (DIV): {
@@ -283,6 +302,54 @@ int GenGraphDots(TreeStruct *tree, Vector *vars, const char *filename) {
     }
 
     fileclose(fn);
+
+    return SUCCESS;
+}
+
+static int MakeSubstitutions(TreeStruct *tree, TreeNode *node, char *current_nick) {
+
+    assert(node);
+    assert(current_nick);
+    assert(tree);
+
+    if (node->value.subtree_size <= MAX_SUB_TREE_SIZE)
+        return SUCCESS;
+
+    if (node->left)
+        MakeSubstitutions(tree, node->left, current_nick);
+
+    if (node->right)
+        MakeSubstitutions(tree, node->right, current_nick);
+
+    if (node->value.subtree_size <= MAX_SUB_TREE_SIZE)
+        return SUCCESS;
+
+    node->value.nick = (*current_nick)++;
+    node->value.subtree_size = 1;
+    CountSubTreeSize(tree->root);
+
+    return SUCCESS;
+
+}
+
+static int PrepareToPrint(TreeStruct *tree, Vector *vars, size_t *var_index, const char *filename) {
+
+    assert(tree);
+    assert(vars);
+    assert(var_index);
+    assert(filename);
+
+    if (TreeVerify(tree) != SUCCESS)
+        return ERROR;
+
+    if (VarsVerify(vars) != SUCCESS)
+        return ERROR;
+
+    if (vars->size > 1) {
+        *var_index = GetVarIndex(vars);
+    }
+
+    cleanfile(filename);
 
     return SUCCESS;
 }

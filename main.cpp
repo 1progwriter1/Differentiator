@@ -22,7 +22,7 @@ int main(const int argc, const char *argv[]) {
     if (VectorCtor(&vars, NUM_OF_VARS) != SUCCESS)
         return ERROR;
 
-    if (ReadFileDiff(&tree, &vars, "long_expr.txt") != SUCCESS)
+    if (ReadFileDiff(&tree, &vars, DATA_DIFF) != SUCCESS)
         return ERROR;
 
     if (maindata.graph)
@@ -31,11 +31,14 @@ int main(const int argc, const char *argv[]) {
             return ERROR;
         }
 
-    if (maindata.latex)
+    if (maindata.latex) {
+        if (GenGraphDiff(&tree, &vars, GRAPHVIZ_OUTPUT_FILE) != SUCCESS)
+            return ERROR;
         if (PrintDifferentiation(&tree, &vars, LATEX_FILE) != SUCCESS) {
             printf(RED "latex error" END_OF_COLOR "\n");
             return ERROR;
         }
+    }
 
     if (maindata.calculate) {
         double answer = 0;

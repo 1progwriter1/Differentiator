@@ -186,6 +186,7 @@ TreeNode* NodeCopy(TreeStruct *tree, TreeNode *src) {
     TreeNode *ptr = TreeNodeNew(tree, src->value,  NULL, NULL);
     if (!ptr)
         return NULL;
+    ptr->value.subtree_size = 0;
 
     if (src->left) {
         ptr->left = NodeCopy(tree, src->left);

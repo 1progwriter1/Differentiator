@@ -7,6 +7,7 @@
 #define DATA_DIFF "diff_data.txt"
 #define PLOT_FILE "plot_file.txt"
 #define LATEX_FILE "latex/latex.txt"
+#define EXPR_FILE "long_expr.txt"
 
 #define COL_SYM "5"
 
@@ -46,6 +47,8 @@ struct NodeValue {
         double number;
         size_t nvar;
     };
+    size_t subtree_size;
+    char nick;
 };
 
 #endif
