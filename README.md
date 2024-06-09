@@ -1,2 +1,3 @@
-# Differentiator
-Expression calculation and differentiation
+# Дифференциатор
+
+
