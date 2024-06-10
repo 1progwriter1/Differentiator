@@ -13,6 +13,6 @@ int ReadFileDiff(TreeStruct *tree, Vector *vars, const char *filename);
 
 int GetMainArgs(const int argc, const char *argv[], MainArgs *maindata);
 
-int GetIndexIfExist(Vector *vars, const char *variable);
+int GetIndexIfExist(Vector *vars, char variable);
 
 #endif

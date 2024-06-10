@@ -13,7 +13,7 @@
 #include <time.h>
 
 const size_t NUM_OF_PHRASES = 11;
-const size_t DEPTH = 7;
+const size_t DEPTH = 1;
 const size_t MAX_SUB_TREE_SIZE = 85;
 
 const char *PHRASES[NUM_OF_PHRASES] = {
@@ -63,6 +63,15 @@ int PrintDifferentiation(TreeStruct *tree, Vector *vars, const char *filename) {
         fprintf(fn, "%s", PHRASES[randnum(0, NUM_OF_PHRASES - 1)]);
 
         if (TakeTreeDerivative(tree, &diff_tree, var_index) != SUCCESS)
+            return ERROR;
+
+        if (GenGraphDiff(&diff_tree, vars, "Graphviz/diff_no_simp.png") != SUCCESS)
+            return ERROR;
+
+        if (SimplifyTree(&diff_tree) != SUCCESS)
+            return ERROR;
+
+        if (GenGraphDiff(&diff_tree, vars, "Graphviz/diff_simp.png") != SUCCESS)
             return ERROR;
 
         if (MakeSubstitutions(&diff_tree, diff_tree.root, &current_nick) != SUCCESS)
@@ -130,7 +139,7 @@ static int PrintNodeLatex(TreeNode *node, Vector *vars, FILE *fn) {
         }
         case (VARIABLE): {
             Print(L);
-            fprintf(fn, "%s", vars->data[node->value.nvar].name);
+            fprintf(fn, "%c", vars->data[node->value.nvar].name);
             Print(R);
             break;
         }
@@ -242,7 +251,7 @@ static size_t GetVarIndex(Vector *vars) {
 
     printf(MAGENTA "Enter the index of the variable by which you want to differentiate: " END_OF_COLOR);
     for (size_t i = 0; i < vars->size; i++)
-        printf("%lu) %s, ", i, vars->data[i].name);
+        printf("%lu) %c, ", i, vars->data[i].name);
     printf("\b: ");
 
     bool correct = true;

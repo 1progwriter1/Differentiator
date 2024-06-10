@@ -3,12 +3,12 @@
 
 #include "../data/diff_values.h"
 
-struct Varible {
-    char *name;
+struct Variable {
+    char name;
     double value;
 };
 
-typedef Varible Vec_t;
+typedef Variable Vec_t;
 
 struct Vector {
     Vec_t *data;

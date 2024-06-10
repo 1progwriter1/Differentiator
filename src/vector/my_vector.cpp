@@ -32,11 +32,6 @@ int VectorDtor(Vector *vec) {
 
     assert(vec);
 
-    for (size_t i = 0; i < vec->size; i++) {
-        free(vec->data[i].name);
-        vec->data[i].name = NULL;
-    }
-
     free(vec->data);
     vec->size = 0;
     vec->capacity = 0;

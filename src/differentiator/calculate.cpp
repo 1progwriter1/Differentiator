@@ -210,7 +210,7 @@ static int GetVariables(Vector *vars) {
     assert(vars);
 
     for (size_t i = 0; i < vars->size; i++) {
-        printf(MAGENTA "Enter %s: " END_OF_COLOR "\n", vars->data[i].name);
+        printf(MAGENTA "Enter %c: " END_OF_COLOR "\n", vars->data[i].name);
         vars->data[i].value = GetVariable();
     }
 

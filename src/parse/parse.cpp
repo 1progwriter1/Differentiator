@@ -216,9 +216,9 @@ TreeNode *GetNumber(StringParseData *data) {
 
     if ('x' <= data->buf[data->position] && data->buf[data->position] <= 'z') {
 
-        int var_index = GetIndexIfExist(data->vars, data->buf + data->position);
+        int var_index = GetIndexIfExist(data->vars, data->buf[data->position]);
         if (var_index == -1) {
-            if (PushBack(data->vars, {(char *) data->buf + data->position, 0}) != SUCCESS)
+            if (PushBack(data->vars, {data->buf[data->position], 0}) != SUCCESS)
                 return NULL;
             data->position += 1;
             return NEW(VAR(data->vars->size - 1), NULL, NULL);

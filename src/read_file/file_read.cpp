@@ -215,10 +215,10 @@ static int ReadVariable(TreeNode *node, FileBuffer *buffer, Vector *vars) {
         buffer->index += i + (size_t) symbols_read;
         break;
     }
-    int var_index = GetIndexIfExist(vars, str);
+    int var_index = GetIndexIfExist(vars, *str);
 
     if (var_index == -1) {
-        if (PushBack(vars, {str, 0}) != SUCCESS)
+        if (PushBack(vars, {*str, 0}) != SUCCESS)
             return ERROR;
         node->value = {VARIABLE, {.nvar = vars->size - 1}};
     }
@@ -230,13 +230,13 @@ static int ReadVariable(TreeNode *node, FileBuffer *buffer, Vector *vars) {
 
 }
 
-int GetIndexIfExist(Vector *vars, const char *variable) {
+int GetIndexIfExist(Vector *vars, char variable) {
 
     assert(vars);
     assert(variable);
 
     for (size_t i = 0; i < vars->size; i++) {
-        if (strcmp(vars->data[i].name, variable) == 0)
+        if (vars->data[i].name == variable)
             return (int) i;
     }
 

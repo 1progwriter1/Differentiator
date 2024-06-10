@@ -4,7 +4,7 @@
 #define GRAPHVIZ_OUTPUT_FILE "Graphviz/diff.png"
 #define GRAPH_FILE "Graphviz/diff_cpy.png"
 #define GRAPHVIZ_INPUT_FILE "Graphviz/diff.dot"
-#define DATA_DIFF "diff_data.txt"
+#define DATA_DIFF "expression.txt"
 #define PLOT_FILE "plot_file.txt"
 #define LATEX_FILE "latex/latex.txt"
 #define EXPR_FILE "long_expr.txt"

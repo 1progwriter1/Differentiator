@@ -102,7 +102,7 @@ static int PrintNodeTree(FILE *fn, const TreeNode *node, Vector *vars, const siz
                 printf(RED "Missing variable to print" END_OF_COLOR "\n");
                 return ERROR;
             }
-            fprintf(fn, "#FFFF66\", color = \"#331900\", label = \"%s", vars->data[node->value.nvar].name);
+            fprintf(fn, "#FFFF66\", color = \"#331900\", label = \"%c", vars->data[node->value.nvar].name);
             break;
         }
         default: {

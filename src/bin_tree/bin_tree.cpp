@@ -194,7 +194,7 @@ static int WriteNodeInFile(TreeNode *node, FILE *file, Vector *vars) {
             break;
         }
         case (VARIABLE): {
-            fprintf(file, "%s", vars->data[node->value.nvar].name);
+            fprintf(file, "%c", vars->data[node->value.nvar].name);
             break;
         }
         default: {
