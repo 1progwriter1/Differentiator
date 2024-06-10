@@ -6,6 +6,7 @@
 #include "differentiator/derivative.h"
 #include "vector/my_vector.h"
 #include "gen_latex/tree_output.h"
+#include "parse/parse.h"
 
 int main(const int argc, const char *argv[]) {
 
@@ -22,7 +23,7 @@ int main(const int argc, const char *argv[]) {
     if (VectorCtor(&vars, NUM_OF_VARS) != SUCCESS)
         return ERROR;
 
-    if (ReadFileDiff(&tree, &vars, DATA_DIFF) != SUCCESS)
+    if (StringParse(&tree, &vars, DATA_DIFF) != SUCCESS)
         return ERROR;
 
     if (maindata.graph)

@@ -1,22 +1,16 @@
 digraph G {
-	-10 [shape = "polygon", label = "size: 9\naddress: 0x107800950", style = "filled", color = "#FFFF99"]
+	-10 [shape = "polygon", label = "size: 6\naddress: 0x107200b90", style = "filled", color = "#FFFF99"]
 	-10->0 [weight = 1000, color = "#FFFFFF"]
-	0 [shape = Mrecord, style = filled, fillcolor = "#00FFFF", color = "#331900", label = "+\nsubtree_size: 0\nchar: 0"]
+	0 [shape = Mrecord, style = filled, fillcolor = "#00FFFF", color = "#331900", label = "*\nsubtree_size: 6\nchar: 0"]
 	0->1
-	1 [shape = Mrecord, style = filled, fillcolor = "#00FFFF", color = "#331900", label = "sin\nsubtree_size: 0\nchar: 0"]
-	1->2
-	2 [shape = Mrecord, style = filled, fillcolor = "#00FFFF", color = "#331900", label = "+\nsubtree_size: 0\nchar: 0"]
+	1 [shape = Mrecord, style = filled, fillcolor = "#66FF66", color = "#331900", label = "12\nsubtree_size: 1\nchar: 0"]
+	0->2
+	2 [shape = Mrecord, style = filled, fillcolor = "#00FFFF", color = "#331900", label = "cos\nsubtree_size: 4\nchar: 0"]
 	2->3
-	3 [shape = Mrecord, style = filled, fillcolor = "#00FFFF", color = "#331900", label = "*\nsubtree_size: 0\nchar: 0"]
+	3 [shape = Mrecord, style = filled, fillcolor = "#00FFFF", color = "#331900", label = "^\nsubtree_size: 3\nchar: 0"]
 	3->4
-	4 [shape = Mrecord, style = filled, fillcolor = "#66FF66", color = "#331900", label = "5\nsubtree_size: 0\nchar: 0"]
+	4 [shape = Mrecord, style = filled, fillcolor = "#66FF66", color = "#331900", label = "7\nsubtree_size: 1\nchar: 0"]
 	3->5
-	5 [shape = Mrecord, style = filled, fillcolor = "#FFFF66", color = "#331900", label = "x\nsubtree_size: 0\nchar: 0"]
-	2->6
-	6 [shape = Mrecord, style = filled, fillcolor = "#66FF66", color = "#331900", label = "8.9\nsubtree_size: 0\nchar: 0"]
-	0->7
-	7 [shape = Mrecord, style = filled, fillcolor = "#00FFFF", color = "#331900", label = "cos\nsubtree_size: 0\nchar: 0"]
-	7->8
-	8 [shape = Mrecord, style = filled, fillcolor = "#66FF66", color = "#331900", label = "7\nsubtree_size: 0\nchar: 0"]
+	5 [shape = Mrecord, style = filled, fillcolor = "#FFFF66", color = "#331900", label = "x\nsubtree_size: 1\nchar: 0"]
 	
 }
