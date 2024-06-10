@@ -1,12 +1,12 @@
 #include <stdio.h>
 #include "bin_tree.h"
 #include <assert.h>
-#include "../MyLibraries/headers/systemdata.h"
-#include "../MyLibraries/headers/func.h"
+#include "../../../MyLibraries/headers/systemdata.h"
+#include "../../../MyLibraries/headers/func.h"
 #include <string.h>
-#include "calculate.h"
-#include "my_vector.h"
-#include  "../MyLibraries/headers/file_func.h"
+#include "../differentiator/calculate.h"
+#include "../vector/my_vector.h"
+#include  "../../../MyLibraries/headers/file_func.h"
 
 static int WalkTree(TreeNode *node, size_t *col_nodes);
 static int WriteNodeInFile(TreeNode *node, FILE *file, Vector *vars);
@@ -145,7 +145,7 @@ int WriteInFile(TreeStruct *tree, Vector *vars, const char *filename) {
     if (VarsVerify(vars) != SUCCESS)
         return ERROR;
 
-    FILE *fn = fileopen(filename, WRITE);
+    FILE *fn = openFile(filename, WRITE);
     if (!fn)
         return FILE_OPEN_ERROR;
 
@@ -185,7 +185,7 @@ static int WriteNodeInFile(TreeNode *node, FILE *file, Vector *vars) {
         }
         case (OPERATION): {
             switch (node->value.operation) {
-                #include "operations.h"
+                #include "../data/operations.h"
                 default: {
                     printf(RED "Incorrect operation (printing tree)" END_OF_COLOR "\n");
                     return ERROR;

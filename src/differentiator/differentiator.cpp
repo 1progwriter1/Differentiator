@@ -1,21 +1,18 @@
 #include <stdio.h>
-#include "differentiator.h"
-#include "../MyLibraries/headers/systemdata.h"
-#include "bin_tree.h"
+#include "../differentiator/differentiator.h"
+#include "../../../MyLibraries/headers/systemdata.h"
+#include "../bin_tree/bin_tree.h"
 #include <assert.h>
 #include <math.h>
-#include "../MyLibraries/headers/func.h"
-#include "gen_graph_diff.h"
+#include "../../../MyLibraries/headers/func.h"
+#include "../graph_gen/gen_graph_diff.h"
 
+#undef CALC
 #define CALC(node) CalculateNode(data, node, error)
 
-const double PI = 3.1415926535; // math.h
 const size_t NUM_OF_VAR = 1;
 
-// NumOfArgs
-enum NumOfAgrs {
-    // kNoArgsNum = 0,
-    // kOneArgsNum = 1,
+enum NumOfArgs {
     NO_ARGS = 0,
     ONE     = 1,
     TWO     = 2,
@@ -23,7 +20,7 @@ enum NumOfAgrs {
 
 static int OperationVerify(const TreeNode *node);
 static int GetNumOfArgs(const Operation operation);
-int TreeCopy(Differentiator *data_src, Differentiator *data_dst); //???
+int TreeCopy(Differentiator *data_src, Differentiator *data_dst);
 static int NodeValueCopy(TreeNode *src, TreeNode *dst);
 
 int DiffCtor(Differentiator *data) {
@@ -46,7 +43,7 @@ int DiffDtor(Differentiator *data) {
 
     assert(data);
 
-    TreeRootDtorDiff(&data->tree);
+    TreeRootDtor(&data->tree);
     free(data->var);
     data->var = NULL;
 
@@ -63,19 +60,19 @@ NodeValue *CreateNodeValue(ValueType type, Operation operation, double num, int 
 
     switch ((int) type) {
         case (OPERATION): {
-            ptr->value.operation = operation;
+            ptr->operation = operation;
             break;
         }
         case (NUMBER): {
-            ptr->value.number = num;
+            ptr->number = num;
             break;
         }
         case (VARIABLE): {
-            ptr->value.nvar = nvar;
+            ptr->nvar = (size_t) nvar;
             break;
         }
         default: {
-            printf(RED "Incoreect value type" END_OF_COLOR "\n");
+            printf(RED "Incorrect value type" END_OF_COLOR "\n");
             return NULL;
         }
     }
@@ -109,14 +106,14 @@ double CalculateNode(Differentiator *data, TreeNode *node, bool *error) {
         return ERROR;
     }
 
-    if (node->value->type == NUMBER) {
-        return node->value->value.number;
+    if (node->value.type == NUMBER) {
+        return node->value.number;
     }
 
-    if (node->value->type == VARIABLE) {
+    if (node->value.type == VARIABLE) {
         if (!data->is_get) {
             data->is_get = true;
-            return GetVarialble(); //???
+            return GetVarialble();
         }
         else
             return data->var[0];
@@ -126,18 +123,15 @@ double CalculateNode(Differentiator *data, TreeNode *node, bool *error) {
         *error = true;
     }
 
-    #define DEF_OP(name, code, sym, args, diff, calc) \
+    #define DEF_OP(name, code, sym, args, diff, calc, ...) \
         case (code): {                                \
             return calc;                              \
         }
 
-    switch (node->value->value.operation) {
-        #include "operations.h"
-        case (NO_OPERATION): {
-            printf(RED "Missing operation" END_OF_COLOR "\n");
-            *error = true;
-            return ERROR;
-        }
+    switch (node->value.operation) {
+
+        #include "../data/operations.h"
+
         default: {
             printf(RED "Incorrect operation" END_OF_COLOR "\n");
             *error = true;
@@ -172,7 +166,7 @@ static int OperationVerify(const TreeNode *node) {
 
     assert(node);
 
-    switch (GetNumOfArgs(node->value->value.operation)) {
+    switch (GetNumOfArgs(node->value.operation)) {
         case (ONE): {
             if (!node->right) {
                 printf(RED "Missing argument. A null pointer was received." END_OF_COLOR "\n");
@@ -196,23 +190,23 @@ static int OperationVerify(const TreeNode *node) {
             return ERROR;
         }
     }
-    Operation operation = node->value->value.operation;
+    Operation operation = node->value.operation;
     if (operation == DIV) {
-        if (node->right->value->type == NUMBER && IsEqual(node->right->value->value.number, 0)) {
+        if (node->right->value.type == NUMBER && IsEqual(node->right->value.number, 0)) {
             printf(RED "Division by zero" END_OF_COLOR "\n");
             return ERROR;
         }
         return SUCCESS;
     }
     if (operation == SQRT) {
-        if (node->right->value->type == NUMBER && node->right->value->value.number < 0) {
+        if (node->right->value.type == NUMBER && node->right->value.number < 0) {
             printf(RED "The square root of a negative number" END_OF_COLOR "\n");
             return ERROR;
         }
         return SUCCESS;
     }
     if (operation == LN) {
-        if (node->right->value->type == NUMBER && node->right->value->value.number <= 0) {
+        if (node->right->value.type == NUMBER && node->right->value.number <= 0) {
             printf(RED "The ln of a non-positive number" END_OF_COLOR "\n");
             return ERROR;
         }
@@ -234,12 +228,8 @@ static int GetNumOfArgs(const Operation operation) {
 
     switch (operation) {
 
-        #include "operations.h"
+        #include "../data/operations.h"
 
-        case (NO_OPERATION): {
-            num_of_args = NO_ARGS;
-            break;
-        }
         default: {
             num_of_args = NO_ARGS;
             break;
@@ -257,7 +247,7 @@ int TreeCopy(Differentiator *data_src, Differentiator *data_dst) {
     if (DiffCtor(data_dst) != SUCCESS)
         return ERROR;
 
-    TreeNodeDtorDiff(&data_dst->tree, data_dst->tree.root);
+    NodeDtor(&data_dst->tree, data_dst->tree.root);
     data_dst->tree.root = NodeCopy(data_dst, data_src->tree.root);
     if (!data_dst->tree.root)
         return ERROR;
@@ -270,7 +260,7 @@ TreeNode* NodeCopy(Differentiator *data, TreeNode *src) {
     assert(data);
     assert(src);
 
-    TreeNode *ptr = TreeNodeNew(&data->tree, NULL, NULL, NULL);
+    TreeNode *ptr = TreeNodeNew(&data->tree, {}, NULL, NULL);
     if (!ptr)
         return NULL;
 
@@ -282,7 +272,7 @@ TreeNode* NodeCopy(Differentiator *data, TreeNode *src) {
         if (!ptr->left)
             return NULL;
     }
-//leak
+
     if (src->right) {
         ptr->right = NodeCopy(data, src->right);
         if (!ptr->right)
@@ -291,30 +281,13 @@ TreeNode* NodeCopy(Differentiator *data, TreeNode *src) {
 
     return ptr;
 }
-//???
+
 static int NodeValueCopy(TreeNode *src, TreeNode *dst) {
 
     assert(src);
     assert(dst);
 
     dst->value = src->value;
-/*
-    ValueType type = src->value->type;
-    Operation operation = NO_OPERATION;
-    double num = NO_NUMBER;
-    int nvar = 0;
 
-    if (type == OPERATION) {
-        operation = src->value->value.operation;
-    }
-    else if (type == NUMBER) {
-        num = src->value->value.number;
-    }
-    else {
-        nvar = src->value->value.nvar;
-    }
-
-    dst->value = CreateNodeValue(type, operation, num, nvar);
-*/
     return SUCCESS;
 }

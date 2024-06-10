@@ -1,11 +1,10 @@
 #include <stdio.h>
-#include "../MyLibraries/headers/file_func.h"
-#include "../MyLibraries/headers/systemdata.h"
+#include "../../../MyLibraries/headers/file_func.h"
+#include "../../../MyLibraries/headers/systemdata.h"
 #include "gen_graph_diff.h"
-#include "calculate.h"
+#include "../differentiator/calculate.h"
 #include <assert.h>
-#include "../MyLibraries/headers/systemdata.h"
-#include "my_vector.h"
+#include "../vector/my_vector.h"
 
 const size_t MAX_CMD_LEN = 60;
 
@@ -18,7 +17,7 @@ int GenGraphDiff(const TreeStruct *tree, Vector *vars, const char *filename) {
     assert(vars);
     assert(filename);
 
-    FILE *fn = fileopen(GRAPHVIZ_INPUT_FILE, WRITE);
+    FILE *fn = openFile(GRAPHVIZ_INPUT_FILE, WRITE);
     if (!fn)
         return FILE_OPEN_ERROR;
 
@@ -34,7 +33,7 @@ int GenGraphDiff(const TreeStruct *tree, Vector *vars, const char *filename) {
     fprintf(fn, "\n");
     fprintf(fn, "}");
 
-    fileclose(fn);
+    closeFile(fn);
 
     char command[MAX_CMD_LEN] = "";
 
@@ -86,7 +85,7 @@ static int PrintNodeTree(FILE *fn, const TreeNode *node, Vector *vars, const siz
         case (OPERATION): {
             fprintf(fn, "#00FFFF\", color = \"#331900\", label = \"");
             switch (node->value.operation) {
-                #include "operations.h"
+                #include "../data/operations.h"
                 default: {
                     printf(RED "Incorrect operation number" END_OF_COLOR "\n");
                     return ERROR;

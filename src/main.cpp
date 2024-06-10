@@ -1,11 +1,11 @@
 #include <stdio.h>
-#include "../MyLibraries/headers/systemdata.h"
-#include "calculate.h"
-#include "gen_graph_diff.h"
-#include "file_read.h"
-#include "derivative.h"
-#include "my_vector.h"
-#include "tree_output.h"
+#include "../../MyLibraries/headers/systemdata.h"
+#include "differentiator/calculate.h"
+#include "graph_gen/gen_graph_diff.h"
+#include "read_file/file_read.h"
+#include "differentiator/derivative.h"
+#include "vector/my_vector.h"
+#include "gen_latex/tree_output.h"
 
 int main(const int argc, const char *argv[]) {
 

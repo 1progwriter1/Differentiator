@@ -1,3 +1,5 @@
+#include "diff_dsl.h"
+
 DEF_OP (ADD, 0, "+", 2,
         NEW_S(OP(ADD),
             D(L),

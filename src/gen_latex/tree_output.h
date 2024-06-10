@@ -1,7 +1,7 @@
 #ifndef GEN_LATEX_DIFF
 #define GEN_LATEX_DIFF
 
-#include "bin_tree.h"
+#include "../bin_tree/bin_tree.h"
 
 int GenLatex(TreeStruct *tree, Vector *vars, FILE *fn);
 

@@ -1,9 +1,9 @@
 #ifndef BIN_TREE_FUNC
 #define BIN_TREE_FUNC
 
-#include "diff_values.h"
+#include "../data/diff_values.h"
 #include <stdio.h>
-#include "my_vector.h"
+#include "../vector/my_vector.h"
 
 typedef NodeValue Tree_t;
 #define tree_output_id "%d"

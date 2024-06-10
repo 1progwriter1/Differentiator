@@ -1,7 +1,7 @@
 #ifndef DIFFERENTIATOR
 #define DIFFERENTIATOR
 
-#include "bin_tree.h"
+#include "../bin_tree/bin_tree.h"
 
 struct Differentiator {
     TreeStruct tree;

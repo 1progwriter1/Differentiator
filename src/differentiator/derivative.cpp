@@ -2,12 +2,12 @@
 #include "derivative.h"
 #include "calculate.h"
 #include <assert.h>
-#include "../MyLibraries/headers/systemdata.h"
-#include "gen_graph_diff.h"
-#include "../MyLibraries/headers/func.h"
+#include "../../../MyLibraries/headers/systemdata.h"
+#include "../graph_gen/gen_graph_diff.h"
+#include "../../../MyLibraries/headers/func.h"
 #include <stdbool.h>
-#include "bin_tree.h"
-#include "diff_dsl.h"
+#include "../bin_tree/bin_tree.h"
+#include "../data/diff_dsl.h"
 #include <math.h>
 
 static TreeNode* TakeNodeDerivative(TreeStruct *tree, TreeNode *node, const size_t var_index);
@@ -59,7 +59,7 @@ static TreeNode* TakeNodeDerivative(TreeStruct *tree, TreeNode *node, const size
         }
 
     switch (node->value.operation) {
-        #include "operations.h"
+        #include "../data/operations.h"
         default: {
             printf(RED "Missing operation" END_OF_COLOR "\n");
             return NULL;

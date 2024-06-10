@@ -2,18 +2,25 @@ CFLAGS=-fsanitize=address,alignment -D _DEBUG -ggdb3 -std=c++17 -O0 -Wall -Wextr
 
 COMP=g++
 
-OBJ_DIR=object_files
-LIB_DIR=libs_objects
-SOURCES=$(wildcard *.cpp)
-OBJECTS=$(patsubst %.cpp, %.o, $(SOURCES))
-OBJ_MOVED=$(wildcard $(OBJ_DIR)/*.o)
-LIB_OBJ=$(wildcard $(LIB_DIR)/*.o)
+VECTOR_DIR=src/vector
+PARSE_DIR=src/parse
+BIN_TREE_DIR=src/bin_tree
+DIFF_DIR=src/differentiator
+LATEX_DIR=src/gen_latex
+READ_FILE_DIR=src/read_file
+GRAPH_DIR=src/graph_gen
 
+LIB_OBJ_DIR=src/lib_objects
+LIB_OBJ=$(wildcard $(LIB_OBJ_DIR)/*.o)
 
-all: $(SOURCES)
-	$(COMP) $(CFLAGS) -c $(SOURCES)
-	mv $(OBJECTS) $(OBJ_DIR)/
-	$(COMP) $(CFLAGS) $(OBJ_MOVED) $(LIB_OBJ)
+VECTOR_SRC=$(wildcard $(VECTOR_DIR)/*.cpp)
+PARSE_SRC=$(wildcard $(PARSE_DIR)/*.cpp)
+BIN_TREE_SRC=$(wildcard $(BIN_TREE_DIR)/*.cpp)
+DIFF_SRC=$(wildcard $(DIFF_DIR)/*.cpp)
+LATEX_SRC=$(wildcard $(LATEX_DIR)/*.cpp)
+READ_FILE_SRC=$(wildcard $(READ_FILE_DIR)/*.cpp)
+GRAPH_SRC=$(wildcard $(GRAPH_DIR)/*.cpp)
 
-clean:
-	rm -f $(OBJ_MOVED)
+all: $(VECTOR_SRC) $(PARSE_SRC) $(BIN_TREE_SRC) $(DIFF_SRC) $(LATEX_SRC) $(READ_FILE_SRC) $(GRAPH_SRC)
+	$(COMP) $(CFLAGS) $(VECTOR_SRC) $(PARSE_SRC) $(BIN_TREE_SRC) $(DIFF_SRC) $(LATEX_SRC) $(READ_FILE_SRC) $(GRAPH_SRC) $(LIB_OBJ) src/main.cpp
+	rm -rf *.dSYM

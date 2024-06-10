@@ -1,11 +1,11 @@
 #include "parse.h"
 #include <assert.h>
 #include <math.h>
-#include "../MyLibraries/headers/systemdata.h"
+#include "../../../MyLibraries/headers/systemdata.h"
 #include <string.h>
-#include "../MyLibraries/headers/file_func.h"
-#include "diff_dsl.h"
-#include "file_read.h"
+#include "../../../MyLibraries/headers/file_func.h"
+#include "../data/diff_dsl.h"
+#include "../read_file/file_read.h"
 
 #define ERR_ASSERT(error) if (error != NO_ERROR) return NULL;
 #define PAR_ASSERT(str)   if (str != ')') { printf(RED "Syntax error: " END_OF_COLOR "\nrecieved %s\nexpexted: )\n", data->buf + data->position);   \
@@ -16,7 +16,7 @@ int StringParse(TreeStruct *tree, Vector *vars, const char *filename) {
 
     assert(filename);
 
-    char *buf = readbuf(filename);
+    char *buf = readFileToBuffer(filename);
     if (!buf) return NO_MEMORY;
 
     StringParseData data = {tree, vars, buf, 0, NO_ERROR};
@@ -27,7 +27,7 @@ int StringParse(TreeStruct *tree, Vector *vars, const char *filename) {
     tree->root = GetExpression(&data);
 
     if (data.buf[data.position] != '\0') {
-        printf(RED "Syntax error: " END_OF_COLOR "\nrecieved: %s\nexpected: \\0\n", data.buf + data.position);
+        printf(RED "Syntax error: " END_OF_COLOR "\nrecieved: \"%s\"\nexpected: NULL_SYM\n", data.buf + data.position);
         return ERROR;
     }
 
@@ -216,9 +216,9 @@ TreeNode *GetNumber(StringParseData *data) {
 
     if ('x' <= data->buf[data->position] && data->buf[data->position] <= 'z') {
 
-        int var_index = GetIndexIfExist(data->vars, data->buf[data->position]);
+        int var_index = GetIndexIfExist(data->vars, data->buf + data->position);
         if (var_index == -1) {
-            if (PushBack(data->vars, {data->buf[data->position], 0}) != SUCCESS)
+            if (PushBack(data->vars, {(char *) data->buf + data->position, 0}) != SUCCESS)
                 return NULL;
             data->position += 1;
             return NEW(VAR(data->vars->size - 1), NULL, NULL);

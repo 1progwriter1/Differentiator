@@ -1,12 +1,12 @@
 #include <stdio.h>
 #include "calculate.h"
-#include "../MyLibraries/headers/systemdata.h"
-#include "bin_tree.h"
+#include "../../../MyLibraries/headers/systemdata.h"
+#include "../bin_tree/bin_tree.h"
 #include <assert.h>
 #include <math.h>
-#include "../MyLibraries/headers/func.h"
-#include "gen_graph_diff.h"
-#include "diff_dsl.h"
+#include "../../../MyLibraries/headers/func.h"
+#include "../graph_gen/gen_graph_diff.h"
+#include "../data/diff_dsl.h"
 
 enum NumOfAgrs {
     kOneArgsNum = 1,
@@ -75,7 +75,7 @@ double CalculateNode(TreeNode *node, Vector *vars, bool *error) {
         }
 
     switch (node->value.operation) {
-        #include "operations.h"
+        #include "../data/operations.h"
         default: {
             printf(RED "Incorrect operation" END_OF_COLOR "\n");
             *error = true;
@@ -152,7 +152,7 @@ int GetNumOfArgs(const Operation operation) {
 
     switch (operation) {
 
-        #include "operations.h"
+        #include "../data/operations.h"
 
         default: {
             return 0;
@@ -211,13 +211,13 @@ static int GetVariables(Vector *vars) {
 
     for (size_t i = 0; i < vars->size; i++) {
         printf(MAGENTA "Enter %s: " END_OF_COLOR "\n", vars->data[i].name);
-        vars->data[i].value = GetVarialble();
+        vars->data[i].value = GetVariable();
     }
 
     return SUCCESS;
 }
 
-double GetVarialble() {
+double GetVariable() {
 
     double var = 0;
 

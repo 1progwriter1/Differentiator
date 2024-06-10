@@ -1,15 +1,15 @@
 #include <stdio.h>
 #include "file_read.h"
-#include "../MyLibraries/headers/file_func.h"
-#include "calculate.h"
+#include "../../../MyLibraries/headers/file_func.h"
+#include "../differentiator/calculate.h"
 #include <assert.h>
-#include "../MyLibraries/headers/systemdata.h"
+#include "../../../MyLibraries/headers/systemdata.h"
 #include <string.h>
-#include "gen_graph_diff.h"
+#include "../graph_gen/gen_graph_diff.h"
 #include <string.h>
-#include "my_vector.h"
-#include "bin_tree.h"
-#include "derivative.h"
+#include "../vector/my_vector.h"
+#include "../bin_tree/bin_tree.h"
+#include "../differentiator/derivative.h"
 
 static int ReadNodeFile(TreeStruct *tree, TreeNode *node, Vector *vars, FileBuffer *buffer);
 static int GetValue(TreeNode *node, Vector *vars, FileBuffer *buffer);
@@ -17,7 +17,6 @@ static int GetOperationNumber(TreeNode *node, FileBuffer *buffer);
 static bool IsNewNode(FileBuffer *buffer);
 static int EndNode(FileBuffer *buffer);
 static int ReadVariable(TreeNode *node, FileBuffer *buffer, Vector *vars);
-static int GetIndexIfExist(Vector *vars, const char *variable);
 
 int ReadFileDiff(TreeStruct *tree, Vector *vars, const char *filename) {
 
@@ -27,7 +26,7 @@ int ReadFileDiff(TreeStruct *tree, Vector *vars, const char *filename) {
 
     FileBuffer buffer = {};
 
-    buffer.buf = readbuf(filename);
+    buffer.buf = readFileToBuffer(filename);
     if (!buffer.buf) {
         printf(RED "Buffer creation error" END_OF_COLOR "\n");
         return ERROR;
@@ -127,7 +126,7 @@ static int GetOperationNumber(TreeNode *node, FileBuffer *buffer) {
         if (ptr[i] == ' ')
             continue;
 
-        #include "operations.h"
+        #include "../data/operations.h"
 
         return ERROR;
     }
@@ -231,7 +230,7 @@ static int ReadVariable(TreeNode *node, FileBuffer *buffer, Vector *vars) {
 
 }
 
-static int GetIndexIfExist(Vector *vars, const char *variable) {
+int GetIndexIfExist(Vector *vars, const char *variable) {
 
     assert(vars);
     assert(variable);

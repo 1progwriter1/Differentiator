@@ -1,7 +1,7 @@
 #ifndef VECTOR_CPU
 #define VECTOR_CPU
 
-#include "diff_values.h"
+#include "../data/diff_values.h"
 
 struct Varible {
     char *name;

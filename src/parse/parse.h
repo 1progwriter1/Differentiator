@@ -2,7 +2,7 @@
 #define STRING_PARSE
 
 #include <stdio.h>
-#include "bin_tree.h"
+#include "../bin_tree/bin_tree.h"
 
 #define INPUT_FILE "expr.txt"
 

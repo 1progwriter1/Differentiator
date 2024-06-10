@@ -1,16 +1,15 @@
 #include <stdio.h>
 #include "tree_output.h"
-#include "../MyLibraries/headers/systemdata.h"
-#include "../MyLibraries/headers/systemdata.h"
-#include "bin_tree.h"
-#include "../MyLibraries/headers/file_func.h"
-#include "my_vector.h"
+#include "../../../MyLibraries/headers/systemdata.h"
+#include "../bin_tree/bin_tree.h"
+#include "../../../MyLibraries/headers/file_func.h"
+#include "../vector/my_vector.h"
 #include <assert.h>
-#include "diff_dsl.h"
-#include "calculate.h"
-#include "../MyLibraries/headers/func.h"
-#include "derivative.h"
-#include "gen_graph_diff.h"
+#include "../data/diff_dsl.h"
+#include "../differentiator/calculate.h"
+#include "../../../MyLibraries/headers/func.h"
+#include "../differentiator/derivative.h"
+#include "../graph_gen/gen_graph_diff.h"
 #include <time.h>
 
 const size_t NUM_OF_PHRASES = 11;
@@ -46,7 +45,7 @@ int PrintDifferentiation(TreeStruct *tree, Vector *vars, const char *filename) {
     if (PrepareToPrint(tree, vars, &var_index, filename) != SUCCESS)
         return ERROR;
 
-    FILE *fn = fileopen(filename, APPEND);
+    FILE *fn = openFile(filename, APPEND);
     if (!fn)
         return FILE_OPEN_ERROR;
 
@@ -282,7 +281,7 @@ int GenGraphDots(TreeStruct *tree, Vector *vars, const char *filename) {
 
     double answer = 0;
     bool error = 0;
-    FILE *fn = fileopen(filename, "w");
+    FILE *fn = openFile(filename, "w");
 
     if (vars->size == 0) {
         answer = CalculateNode(tree->root, vars, &error);
@@ -301,7 +300,7 @@ int GenGraphDots(TreeStruct *tree, Vector *vars, const char *filename) {
         }
     }
 
-    fileclose(fn);
+    closeFile(fn);
 
     return SUCCESS;
 }
@@ -349,7 +348,7 @@ static int PrepareToPrint(TreeStruct *tree, Vector *vars, size_t *var_index, con
         *var_index = GetVarIndex(vars);
     }
 
-    cleanfile(filename);
+    cleanFile(filename);
 
     return SUCCESS;
 }
