@@ -37,6 +37,7 @@
 - вычитание нуля
 
 3)  **Производная после упрощения**
+
     <figure>
     <img src="Graphviz/diff_simp.png" height=400>
     </figure>
